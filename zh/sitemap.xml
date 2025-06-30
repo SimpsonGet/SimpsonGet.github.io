@@ -2,46 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://example.org/zh/categories/</loc>
+    <loc>https://SimpsonGet.github.io/zh/categories/</loc>
     <lastmod>2025-06-30T20:48:29+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/categories/category-1/</loc>
+    <loc>https://SimpsonGet.github.io/zh/categories/category-1/</loc>
     <lastmod>2025-06-30T20:48:29+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/categories/category-2/</loc>
+    <loc>https://SimpsonGet.github.io/zh/categories/category-2/</loc>
     <lastmod>2025-06-30T20:48:29+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/posts/</loc>
+    <loc>https://SimpsonGet.github.io/zh/posts/</loc>
     <lastmod>2025-06-30T20:48:29+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/posts/read/</loc>
+    <loc>https://SimpsonGet.github.io/zh/posts/read/</loc>
     <lastmod>2025-06-30T20:48:29+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/</loc>
+    <loc>https://SimpsonGet.github.io/zh/</loc>
     <lastmod>2025-06-30T20:48:29+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/posts/tech/</loc>
+    <loc>https://SimpsonGet.github.io/zh/posts/tech/</loc>
     <lastmod>2025-06-30T20:48:23+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/posts/life/</loc>
+    <loc>https://SimpsonGet.github.io/zh/posts/life/</loc>
     <lastmod>2025-06-30T20:47:03+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/posts/life/first-blog/</loc>
+    <loc>https://SimpsonGet.github.io/zh/posts/life/first-blog/</loc>
     <lastmod>2025-06-30T17:37:13+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/tags/android/</loc>
+    <loc>https://SimpsonGet.github.io/zh/tags/android/</loc>
     <lastmod>2025-06-30T17:37:13+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/tags/any/</loc>
+    <loc>https://SimpsonGet.github.io/zh/tags/any/</loc>
     <lastmod>2025-06-30T17:37:13+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/tags/</loc>
+    <loc>https://SimpsonGet.github.io/zh/tags/</loc>
     <lastmod>2025-06-30T17:37:13+08:00</lastmod>
   </url><url>
-    <loc>https://example.org/zh/series/</loc>
+    <loc>https://SimpsonGet.github.io/zh/series/</loc>
   </url><url>
-    <loc>https://example.org/zh/about/</loc>
+    <loc>https://SimpsonGet.github.io/zh/about/</loc>
   </url><url>
-    <loc>https://example.org/zh/search/</loc>
+    <loc>https://SimpsonGet.github.io/zh/search/</loc>
   </url>
 </urlset>
