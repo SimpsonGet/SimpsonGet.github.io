@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>x红书水印去除 | Simpson&#39;s Blog</title>
+<meta name="keywords" content="x红书, 水印">
+<meta name="description" content="使用frida脚本去除x红书水印，获得无水印原图">
+<meta name="author" content="simpson">
+<link rel="canonical" href="https://SimpsonGet.github.io/zh/posts/tech/xhsunwatermark/">
+
+ <link crossorigin="anonymous" href="/assets/css/stylesheet.36819bea596090d8b48cf10d9831382996197aa7e4fc86f792f7c08c9ca4d23b.css" integrity="" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="16x16" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="32x32" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="apple-touch-icon" href="https://SimpsonGet.github.io/logo.gif">
+<link rel="mask-icon" href="https://SimpsonGet.github.io/logo.gif">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://SimpsonGet.github.io/zh/posts/tech/xhsunwatermark/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="https://SimpsonGet.github.io/zh/posts/tech/xhsunwatermark/">
+  <meta property="og:site_name" content="Simpson&#39;s Blog">
+  <meta property="og:title" content="x红书水印去除">
+  <meta property="og:description" content="使用frida脚本去除x红书水印，获得无水印原图">
+  <meta property="og:locale" content="zh">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-06-30T22:01:50+08:00">
+    <meta property="article:modified_time" content="2025-06-30T22:01:50+08:00">
+    <meta property="article:tag" content="Hook">
+    <meta property="article:tag" content="Android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="x红书水印去除">
+<meta name="twitter:description" content="使用frida脚本去除x红书水印，获得无水印原图">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://SimpsonGet.github.io/zh/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Tech",
+      "item": "https://SimpsonGet.github.io/zh/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "x红书水印去除",
+      "item": "https://SimpsonGet.github.io/zh/posts/tech/xhsunwatermark/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "x红书水印去除",
+  "name": "x红书水印去除",
+  "description": "使用frida脚本去除x红书水印，获得无水印原图",
+  "keywords": [
+    "x红书", "水印"
+  ],
+  "articleBody": "\r平时都用小红书下载头像、壁纸，某些主包分享图片还要“私私私”，尝试hook一下加水印的操作看看能不能获得无水印的图。\n定位hook点 调研了一些常用的加水印方式，直接跑一下frida，看看哪些api用到了。\n（ps:在此之前是x红书的frida检测，这里就不细说了，是常用的libmsaoaidsec.so库。\nb站、豆瓣、爱奇艺都是用的这个，过的手段都一样hook dlopen修改pthread_creat的返回值） 一些常用的api： 1 2 3 4 5 6 7 8 9 1、Bitmap.compress 2、FileOutputStream.write 3、MediaStore.insertImage 4、Canvas.drawText 5、Canvas.drawBitmap 跑一遍可以发现定位到了几个点\nBitmap.compress ✅ 作用：将 Bitmap 压缩并输出到文件或流中\n通常用于 保存图片到磁盘（例如 PNG/JPEG 格式），会被调用来将内存中的 Bitmap 转成可写入文件的数据。\nCanvas.drawText ✅ 作用：在 Canvas（画布）上绘制文字\n通常用于：\n添加文字水印 显示图像上的文字说明 合成图像时叠加文字 那这个大概就是添加水印文字（x红书号）的api\nCanvas.drawBitmap ✅ 作用：在 Canvas 上绘制 Bitmap 图像\n常用于：\n把一个 Bitmap 绘制到另一个 Bitmap（比如背景 + 水印图） 图像合成处理（Logo、滤镜） 自定义控件、相机拍照回显等场景 那这个大概就是添加水印图像（x红书log）的api\n替换操作 去除文字水印 前面猜测是Canvas.drawText api，根据调用规则进行hook\n1 2 drawText(String text, float x, float y, Paint paint) //text 是文字内容，x 和 y 是文字的坐标。 通过打印text来验证是否为添加文字水印的地方，然后在返回值处将text替换为空\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 try { Canvas.drawText.overload( \"java.lang.String\", \"float\", \"float\", \"android.graphics.Paint\" ).implementation = function (text, x, y, paint) { console.log(\"[*] Canvas.drawText() called with text: \" + text); console.log(\"[*] Canvas.drawText() called with x, y: \" + x + \" \" + y); if (text.toLowerCase().includes(\"小红书\") || text.toLowerCase().includes(\"xhs\")) { console.warn(\"\u003e\u003e\u003e\u003e\u003e Suspected watermark text found!\"); } //将原有的 text（小红书号:xxxxx)替换为空 return this.drawText('', x, y, paint); }; } catch (e) { console.error(\"[!] Error hooking Canvas.drawText:\", e); } 成功去除了文字水印，这个api定位是对的\n去除图片logo水印 1 2 drawBitmap(bitmap, float left, float top, Paint paint) //参数：bitmap：图片对象，left:偏移左边的位置，top： 偏移顶部的位置 这部分一共有两个思路\n构造透明bitmap伪造水印 根据这块bitmap的大小，太大了不可能是水印\n一开始猜测的drawBitmap是将水印附加在原图上，实际操作发现，hook到的drawBitmap其实是第一步，将原图叠加到一个纯黑的背景上，之后才调用另一个api附加到这个上面（尝试过发现下载了个黑图）\n继续批量测试一些bitmap的重载，最后定位到有Rect参数的api上\n1 2 3 // 重载1: drawBitmap(Bitmap, float, float, Paint) // 重载2: drawBitmap(Bitmap, Rect, Rect, Paint) 等 这里的大小就合适了，测试发现确实是它\n直接将bitmap转换为png下载下来可以发现，这两个rect尺寸的是水印图\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 const FileOutputStream = Java.use(\"java.io.FileOutputStream\"); const File = Java.use(\"java.io.File\"); const CompressFormat = Java.use(\"android.graphics.Bitmap$CompressFormat\"); const Bitmap = Java.use(\"android.graphics.Bitmap\"); function dumpBitmap(bitmap, name) { try { const file = File.$new(\"/sdcard/\" + name + \".png\"); const out = FileOutputStream.$new(file); bitmap.compress(CompressFormat.PNG.value, 100, out); out.close(); console.log(`[*] Bitmap dumped: ${file.getAbsolutePath()}`); } catch (e) { console.error(\"Bitmap dump failed:\", e); } } 最后就获得了没有任何水印的图片\nhook原图并保存在指定位置 另一种方法就是，将图片\n1 2 3 4 5 6 7 Canvas.drawBitmap.overload( \"android.graphics.Bitmap\", \"float\", \"float\", \"android.graphics.Paint\" ).implementation = function (bitmap, left, top, paint) { const width = bitmap.getWidth(); const height = bitmap.getHeight(); dumpBitmap(bitmap, \"hook1\") console.log(\"drawBitmap called: w=\" + width + \", h=\" + height + \", top=\" + top); 获得无水印原图\n其他测试图片 声明：图片都是吃的是我特地找的，并非我平时只看吃的\n（脚本详见github）\n",
+  "wordCount" : "1374",
+  "inLanguage": "zh",
+  "datePublished": "2025-06-30T22:01:50+08:00",
+  "dateModified": "2025-06-30T22:01:50+08:00",
+  "author":[{
+    "@type": "Person",
+    "name": "simpson"
+  }],
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://SimpsonGet.github.io/zh/posts/tech/xhsunwatermark/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Simpson's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://SimpsonGet.github.io/img/logo.gif"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://SimpsonGet.github.io/zh/" accesskey="h" title="Simpson&#39;s Blog (Alt + H)">Simpson&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://SimpsonGet.github.io/zh/">主页</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/">Posts</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/tech/">Tech</a></div>
+    <h1 class="post-title entry-hint-parent">
+      x红书水印去除
+    </h1>
+    <div class="post-description">
+      使用frida脚本去除x红书水印，获得无水印原图
+    </div>
+    <div class="post-meta"><span title='2025-06-30 22:01:50 +0800 CST'>2025-06-30</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;simpson
+
+</div>
+  </header> 
+  <div class="post-content"><!-- more -->
+<p>平时都用小红书下载头像、壁纸，某些主包分享图片还要“私私私”，尝试hook一下加水印的操作看看能不能获得无水印的图。</p>
+<h1 id="定位hook点">定位hook点<a hidden class="anchor" aria-hidden="true" href="#定位hook点">#</a></h1>
+<p>调研了一些常用的加水印方式，直接跑一下frida，看看哪些api用到了。</p>
+<p>（ps:在此之前是x红书的frida检测，这里就不细说了，是常用的libmsaoaidsec.so库。</p>
+<ul>
+<li>b站、豆瓣、爱奇艺都是用的这个，过的手段都一样hook dlopen修改pthread_creat的返回值）</li>
+</ul>
+<h2 id="一些常用的api">一些常用的api：<a hidden class="anchor" aria-hidden="true" href="#一些常用的api">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">1、Bitmap.compress
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">2、FileOutputStream.write
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">3、MediaStore.insertImage
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">4、Canvas.drawText
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">5、Canvas.drawBitmap
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>跑一遍可以发现定位到了几个点</p>
+<p><img alt="image-20250630222358476" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250630222358476.png?raw=true"></p>
+<h2 id="bitmapcompress"><code>Bitmap.compress</code><a hidden class="anchor" aria-hidden="true" href="#bitmapcompress">#</a></h2>
+<p>✅ <strong>作用：将 Bitmap 压缩并输出到文件或流中</strong></p>
+<p>通常用于 <strong>保存图片到磁盘</strong>（例如 PNG/JPEG 格式），会被调用来将内存中的 Bitmap 转成可写入文件的数据。</p>
+<h2 id="canvasdrawtext"><code>Canvas.drawText</code><a hidden class="anchor" aria-hidden="true" href="#canvasdrawtext">#</a></h2>
+<p>✅ <strong>作用：在 Canvas（画布）上绘制文字</strong></p>
+<p>通常用于：</p>
+<ul>
+<li>添加<strong>文字水印</strong></li>
+<li>显示图像上的文字说明</li>
+<li>合成图像时叠加文字</li>
+</ul>
+<p><strong>那这个大概就是添加水印文字（x红书号）的api</strong></p>
+<h2 id="canvasdrawbitmap"><code>Canvas.drawBitmap</code><a hidden class="anchor" aria-hidden="true" href="#canvasdrawbitmap">#</a></h2>
+<p><strong>✅ 作用：在 Canvas 上绘制 Bitmap 图像</strong></p>
+<p>常用于：</p>
+<ul>
+<li>把一个 Bitmap 绘制到另一个 Bitmap（比如背景 + 水印图）</li>
+<li>图像合成处理（Logo、滤镜）</li>
+<li>自定义控件、相机拍照回显等场景</li>
+</ul>
+<p><strong>那这个大概就是添加水印图像（x红书log）的api</strong></p>
+<h1 id="替换操作">替换操作<a hidden class="anchor" aria-hidden="true" href="#替换操作">#</a></h1>
+<h2 id="去除文字水印">去除文字水印<a hidden class="anchor" aria-hidden="true" href="#去除文字水印">#</a></h2>
+<p>前面猜测是Canvas.drawText  api，根据调用规则进行hook</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">drawText</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">Paint</span><span class="w"> </span><span class="n">paint</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">//text 是文字内容，x 和 y 是文字的坐标。</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>通过打印text来验证是否为添加文字水印的地方，然后在返回值处将text替换为空</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="k">try</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Canvas</span><span class="p">.</span><span class="nx">drawText</span><span class="p">.</span><span class="nx">overload</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;java.lang.String&#34;</span><span class="p">,</span> <span class="s2">&#34;float&#34;</span><span class="p">,</span> <span class="s2">&#34;float&#34;</span><span class="p">,</span> <span class="s2">&#34;android.graphics.Paint&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">).</span><span class="nx">implementation</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">text</span><span class="p">,</span> <span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">,</span> <span class="nx">paint</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&#34;[*] Canvas.drawText() called with text: &#34;</span> <span class="o">+</span> <span class="nx">text</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&#34;[*] Canvas.drawText() called with x, y: &#34;</span> <span class="o">+</span> <span class="nx">x</span> <span class="o">+</span> <span class="s2">&#34;   &#34;</span> <span class="o">+</span> <span class="nx">y</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="nx">text</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">().</span><span class="nx">includes</span><span class="p">(</span><span class="s2">&#34;小红书&#34;</span><span class="p">)</span> <span class="o">||</span> <span class="nx">text</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">().</span><span class="nx">includes</span><span class="p">(</span><span class="s2">&#34;xhs&#34;</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&#34;&gt;&gt;&gt;&gt;&gt; Suspected watermark text found!&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">//将原有的 text（小红书号:xxxxx)替换为空
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">drawText</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">,</span> <span class="nx">paint</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&#34;[!] Error hooking Canvas.drawText:&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img alt="image-20250625212323446" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250625212323446.png?raw=true"></p>
+<p>成功去除了文字水印，这个api定位是对的</p>
+<p><img alt="image-20250630224207298" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250630224207298.png?raw=true"></p>
+<h2 id="去除图片logo水印">去除图片logo水印<a hidden class="anchor" aria-hidden="true" href="#去除图片logo水印">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">drawBitmap</span><span class="p">(</span><span class="n">bitmap</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">left</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">top</span><span class="p">,</span><span class="w"> </span><span class="n">Paint</span><span class="w"> </span><span class="n">paint</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">//参数：bitmap：图片对象，left:偏移左边的位置，top： 偏移顶部的位置</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>这部分一共有两个思路</p>
+<h3 id="构造透明bitmap伪造水印">构造透明bitmap伪造水印<a hidden class="anchor" aria-hidden="true" href="#构造透明bitmap伪造水印">#</a></h3>
+<p>根据这块bitmap的大小，太大了不可能是水印</p>
+<p><img alt="image-20250625214547303" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250625214547303.png?raw=true"></p>
+<p>一开始猜测的drawBitmap是将水印附加在原图上，实际操作发现，hook到的drawBitmap其实是第一步，将原图叠加到一个纯黑的背景上，之后才调用另一个api附加到这个上面（尝试过发现下载了个黑图）</p>
+<p>继续批量测试一些bitmap的重载，<strong>最后定位到有Rect参数的api上</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">// 重载1: drawBitmap(Bitmap, float, float, Paint)
+</span></span><span class="line"><span class="cl">// 重载2: drawBitmap(Bitmap, Rect, Rect, Paint)
+</span></span><span class="line"><span class="cl">等
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里的大小就合适了，测试发现确实是它</p>
+<p><img alt="image-20250625215627556" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250625215627556.png?raw=true"></p>
+<p>直接将bitmap转换为png下载下来可以发现，这两个rect尺寸的是水印图</p>
+<p><img alt="image-20250630224841145" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250630224841145.png?raw=true"></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">FileOutputStream</span> <span class="o">=</span> <span class="nx">Java</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s2">&#34;java.io.FileOutputStream&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">File</span> <span class="o">=</span> <span class="nx">Java</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s2">&#34;java.io.File&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">CompressFormat</span> <span class="o">=</span> <span class="nx">Java</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s2">&#34;android.graphics.Bitmap$CompressFormat&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">Bitmap</span> <span class="o">=</span> <span class="nx">Java</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s2">&#34;android.graphics.Bitmap&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kd">function</span> <span class="nx">dumpBitmap</span><span class="p">(</span><span class="nx">bitmap</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">try</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">const</span> <span class="nx">file</span> <span class="o">=</span> <span class="nx">File</span><span class="p">.</span><span class="nx">$new</span><span class="p">(</span><span class="s2">&#34;/sdcard/&#34;</span> <span class="o">+</span> <span class="nx">name</span> <span class="o">+</span> <span class="s2">&#34;.png&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">const</span> <span class="nx">out</span> <span class="o">=</span> <span class="nx">FileOutputStream</span><span class="p">.</span><span class="nx">$new</span><span class="p">(</span><span class="nx">file</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">bitmap</span><span class="p">.</span><span class="nx">compress</span><span class="p">(</span><span class="nx">CompressFormat</span><span class="p">.</span><span class="nx">PNG</span><span class="p">.</span><span class="nx">value</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="nx">out</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">out</span><span class="p">.</span><span class="nx">close</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`[*] Bitmap dumped: </span><span class="si">${</span><span class="nx">file</span><span class="p">.</span><span class="nx">getAbsolutePath</span><span class="p">()</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&#34;Bitmap dump failed:&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>最后就获得了没有任何水印的图片</p>
+<p><img alt="image-20250630225018753" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250630225018753.png?raw=true"></p>
+<h3 id="hook原图并保存在指定位置">hook原图并保存在指定位置<a hidden class="anchor" aria-hidden="true" href="#hook原图并保存在指定位置">#</a></h3>
+<p>另一种方法就是，将图片</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="n">Canvas</span><span class="o">.</span><span class="n">drawBitmap</span><span class="o">.</span><span class="n">overload</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl"><span class="s2">&#34;android.graphics.Bitmap&#34;</span><span class="p">,</span> <span class="s2">&#34;float&#34;</span><span class="p">,</span> <span class="s2">&#34;float&#34;</span><span class="p">,</span> <span class="s2">&#34;android.graphics.Paint&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span><span class="o">.</span><span class="n">implementation</span> <span class="o">=</span> <span class="n">function</span> <span class="p">(</span><span class="n">bitmap</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">paint</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="n">width</span> <span class="o">=</span> <span class="n">bitmap</span><span class="o">.</span><span class="n">getWidth</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="n">height</span> <span class="o">=</span> <span class="n">bitmap</span><span class="o">.</span><span class="n">getHeight</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">	<span class="n">dumpBitmap</span><span class="p">(</span><span class="n">bitmap</span><span class="p">,</span> <span class="s2">&#34;hook1&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&#34;drawBitmap called: w=&#34;</span> <span class="o">+</span> <span class="n">width</span> <span class="o">+</span> <span class="s2">&#34;, h=&#34;</span> <span class="o">+</span> <span class="n">height</span> <span class="o">+</span> <span class="s2">&#34;, top=&#34;</span> <span class="o">+</span> <span class="n">top</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img alt="image-20250630225208099" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250630225208099.png?raw=true"></p>
+<p>获得无水印原图</p>
+<p><img alt="image-20250630225220961" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250630225220961.png?raw=true"></p>
+<h1 id="其他测试图片">其他测试图片<a hidden class="anchor" aria-hidden="true" href="#其他测试图片">#</a></h1>
+<p><img alt="image-20250630225325490" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250630225325490.png?raw=true"></p>
+<p><img alt="image-20250630225305883" loading="lazy" src="https://github.com/SimpsonGet/SimpsonGet.github.io/blob/main/images/posts/xhsUnwatermark/image-20250630225305883.png?raw=true"></p>
+<p><strong>声明：图片都是吃的是我特地找的，并非我平时只看吃的</strong></p>
+<p>（脚本详见github）</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://SimpsonGet.github.io/zh/tags/hook/">Hook</a></li>
+      <li><a href="https://SimpsonGet.github.io/zh/tags/android/">Android</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="next" href="https://SimpsonGet.github.io/zh/posts/life/first-blog/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span></span>
+  </a>
+</nav>
+
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="分享到 GitHub" href="https://github.com/SimpsonGet">
+            <svg version="1.1" viewBox="0 0 24 24" width="30px" height="30px" fill="#171515"> 
+                
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://SimpsonGet.github.io/zh/">Simpson&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
