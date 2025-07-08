@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Hook on Simpson&#39;s Blog</title>
+    <link>https://SimpsonGet.github.io/zh/tags/hook/</link>
+    <description>Recent content in Hook on Simpson&#39;s Blog</description>
+    <generator>Hugo -- 0.147.9</generator>
+    <language>zh</language>
+    <lastBuildDate>Mon, 30 Jun 2025 22:01:50 +0800</lastBuildDate>
+    <atom:link href="https://SimpsonGet.github.io/zh/tags/hook/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>x红书水印去除</title>
+      <link>https://SimpsonGet.github.io/zh/posts/tech/xhsunwatermark/</link>
+      <pubDate>Mon, 30 Jun 2025 22:01:50 +0800</pubDate>
+      <guid>https://SimpsonGet.github.io/zh/posts/tech/xhsunwatermark/</guid>
+      <description>使用frida脚本去除x红书水印，获得无水印原图</description>
+    </item>
+  </channel>
+</rss>
