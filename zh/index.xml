@@ -6,8 +6,15 @@
     <description>Recent content on Simpson&#39;s Blog</description>
     <generator>Hugo -- 0.147.9</generator>
     <language>zh</language>
-    <lastBuildDate>Sun, 13 Jul 2025 23:08:05 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 18 Jul 2025 12:19:49 +0800</lastBuildDate>
     <atom:link href="https://SimpsonGet.github.io/zh/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【爬虫】唯品会APP逆向</title>
+      <link>https://SimpsonGet.github.io/zh/posts/tech/vip/</link>
+      <pubDate>Fri, 18 Jul 2025 12:19:49 +0800</pubDate>
+      <guid>https://SimpsonGet.github.io/zh/posts/tech/vip/</guid>
+      <description>对唯品会搜素商品的报文中的参数authorization 逆向分析，最终复现搜素请求，并且自定义搜素内容爬虫，但未深入使用爬虫框架也未对爬到的商品-价格数据进行下一步处理</description>
+    </item>
     <item>
       <title>海外电商APP希Y某参数分析</title>
       <link>https://SimpsonGet.github.io/zh/posts/tech/shenin/</link>
@@ -27,7 +34,7 @@
       <link>https://SimpsonGet.github.io/zh/posts/tech/bangbnagjiagu/</link>
       <pubDate>Tue, 08 Jul 2025 10:52:17 +0800</pubDate>
       <guid>https://SimpsonGet.github.io/zh/posts/tech/bangbnagjiagu/</guid>
-      <description>很水，很大部分是更着其他人的博客分析了一边其检测，关于解密和加载dex的部分没看，还是带着答案找问题了</description>
+      <description>比较水水，很大部分是更着其他人的博客分析了一边其检测，关于解密和加载dex的部分没看</description>
     </item>
     <item>
       <title>x红书水印去除</title>
