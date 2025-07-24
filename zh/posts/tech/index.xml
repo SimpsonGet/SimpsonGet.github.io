@@ -6,8 +6,15 @@
     <description>Recent content in Tech on Simpson&#39;s Blog</description>
     <generator>Hugo -- 0.147.9</generator>
     <language>zh</language>
-    <lastBuildDate>Fri, 18 Jul 2025 12:19:49 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 24 Jul 2025 15:09:08 +0800</lastBuildDate>
     <atom:link href="https://SimpsonGet.github.io/zh/posts/tech/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【VMP初探】某电商sign值分析</title>
+      <link>https://SimpsonGet.github.io/zh/posts/tech/du/</link>
+      <pubDate>Thu, 24 Jul 2025 15:09:08 +0800</pubDate>
+      <guid>https://SimpsonGet.github.io/zh/posts/tech/du/</guid>
+      <description>第一次真实遇到VMP壳，学习一些逆向手段</description>
+    </item>
     <item>
       <title>【爬虫】唯品会APP逆向</title>
       <link>https://SimpsonGet.github.io/zh/posts/tech/vip/</link>
