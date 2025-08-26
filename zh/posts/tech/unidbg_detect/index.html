@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Unidbg 检测 | Simpson&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="unidbg 部分 检测-对抗手段">
+<meta name="author" content="simpson">
+<link rel="canonical" href="https://SimpsonGet.github.io/zh/posts/tech/unidbg_detect/">
+
+ <link crossorigin="anonymous" href="/assets/css/stylesheet.36819bea596090d8b48cf10d9831382996197aa7e4fc86f792f7c08c9ca4d23b.css" integrity="" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="16x16" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="32x32" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="apple-touch-icon" href="https://SimpsonGet.github.io/logo.gif">
+<link rel="mask-icon" href="https://SimpsonGet.github.io/logo.gif">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://SimpsonGet.github.io/zh/posts/tech/unidbg_detect/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="https://SimpsonGet.github.io/zh/posts/tech/unidbg_detect/">
+  <meta property="og:site_name" content="Simpson&#39;s Blog">
+  <meta property="og:title" content="Unidbg 检测">
+  <meta property="og:description" content="unidbg 部分 检测-对抗手段">
+  <meta property="og:locale" content="zh">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-08-26T20:22:51+08:00">
+    <meta property="article:modified_time" content="2025-08-26T20:22:51+08:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Unidbg 检测">
+<meta name="twitter:description" content="unidbg 部分 检测-对抗手段">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://SimpsonGet.github.io/zh/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Tech",
+      "item": "https://SimpsonGet.github.io/zh/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "Unidbg 检测",
+      "item": "https://SimpsonGet.github.io/zh/posts/tech/unidbg_detect/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Unidbg 检测",
+  "name": "Unidbg 检测",
+  "description": "unidbg 部分 检测-对抗手段",
+  "keywords": [
+    
+  ],
+  "articleBody": "内存布局检测 ​\tunidbg的内存布局:\n​\t栈和堆的空间是在memory.java中设置的， 栈设置一个高地址为栈底， 向低地址延伸作为栈空间。 堆设置一个低地址， 向高地址延伸作为堆空间\n​\t但是在真机上，堆栈地址更高，远高于unidbg设置的（当然unidbg可以设置）\n两者比较，unidbg的堆栈地址是固定的，每次运行他都是基于memory.java中设置的去执行，因此不管运行几次都是固定的空间，这可以作为监测点。 jni检测 调用检测 ​\tunidbg代理了整个java层，将jni桥函数位于0xfffe0000L - 0xffff0000L， 每个跳板函数只有8个字节（中断指令、返回指令）\n​\t在真机环境下，相邻的jni桥函数之间像个至少几十个字节\n方法检测 ​\tunidbg 处理jni的默认策略：会将在调用所有的类/方法时，默认成功获取。如 findclass、getmethodid等函数。\n​\t把这个作为检测点的话，可以在app代码中添加，主动去找不存在的类，判断是否找到。 但是这个作为日志输出时比较明显，那么可以去寻找系统类，但是将其中的字母修改成近似字符或者空格 等隐蔽性更好（如在getmethodid的时候，修改方法签名）\n​\t应对手段：unidbg提供了 addNotFoundClass 函数，主动告知unidbg目标类不在代码中， aceeptMethod 和 acceptFiled（这两个需要重写方法，去抛出异常）\n方法ID ​\tmethodId，在真机中是一个指向ArtMethod的结构体指针，而在unidbg，是对方法签名的一个hash值。 这里的对抗方法可以主动去构造计算方法的签名并计算哈希，对比methodid\n文件描述符 ​\t在真机设备中，使用open、openat等处理文件的函数，打开文件会返回一个文件描述符。是从0开始向正增长的。\n​\t0、1、2对应的分别是标准输入、输出、错误这三个文件描述符\n​\t在真机中基本上都有十几个文件交互，那么文件描述符都在20+\n​\t但是在undibg中只模拟了so，只有012这三个，那么后面交互的文件基本上都小于20\nuname指令 ​\tuname指令可以返回系统信息、版本、架构等\n​\tunidbg设计的时候主机信息设置的是**“1.0.0.-unidbg”**\n​\t这里的检测点是可以主动执行uname函数，对比是否存在关键字 “unidbg\"\n​\t当然，对抗手段也很简单，直接修改unidbg代码中这部分的返回值为真机的返回值\n运行时间检测 ​\tunidbg的模拟执行效率远大于手机的执行时间，可以比对这些时间。但是容易误报一些老旧版本的手机。\n",
+  "wordCount" : "1050",
+  "inLanguage": "zh",
+  "datePublished": "2025-08-26T20:22:51+08:00",
+  "dateModified": "2025-08-26T20:22:51+08:00",
+  "author":[{
+    "@type": "Person",
+    "name": "simpson"
+  }],
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://SimpsonGet.github.io/zh/posts/tech/unidbg_detect/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Simpson's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://SimpsonGet.github.io/img/logo.gif"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://SimpsonGet.github.io/zh/" accesskey="h" title="Simpson&#39;s Blog (Alt + H)">Simpson&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://SimpsonGet.github.io/zh/">主页</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/">Posts</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/tech/">Tech</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Unidbg 检测
+    </h1>
+    <div class="post-meta"><span title='2025-08-26 20:22:51 +0800 CST'>2025-08-26</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;simpson
+
+</div>
+  </header> <div class="toc">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">目录</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%86%85%e5%ad%98%e5%b8%83%e5%b1%80%e6%a3%80%e6%b5%8b" aria-label="内存布局检测">内存布局检测</a></li>
+                <li>
+                    <a href="#jni%e6%a3%80%e6%b5%8b" aria-label="jni检测">jni检测</a><ul>
+                        
+                <li>
+                    <a href="#%e8%b0%83%e7%94%a8%e6%a3%80%e6%b5%8b" aria-label="调用检测">调用检测</a></li>
+                <li>
+                    <a href="#%e6%96%b9%e6%b3%95%e6%a3%80%e6%b5%8b" aria-label="方法检测">方法检测</a></li>
+                <li>
+                    <a href="#%e6%96%b9%e6%b3%95id" aria-label="方法ID">方法ID</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%96%87%e4%bb%b6%e6%8f%8f%e8%bf%b0%e7%ac%a6" aria-label="文件描述符">文件描述符</a></li>
+                <li>
+                    <a href="#uname%e6%8c%87%e4%bb%a4" aria-label="uname指令">uname指令</a></li>
+                <li>
+                    <a href="#%e8%bf%90%e8%a1%8c%e6%97%b6%e9%97%b4%e6%a3%80%e6%b5%8b" aria-label="运行时间检测">运行时间检测</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="内存布局检测">内存布局检测<a hidden class="anchor" aria-hidden="true" href="#内存布局检测">#</a></h1>
+<p>​	<code>unidbg</code>的内存布局:</p>
+<p>​			栈和堆的空间是在<code>memory.java</code>中设置的， <strong>栈设置一个高地址为栈底， 向低地址延伸作为栈空间。</strong> <strong>堆设置一个低地址， 向高地址延伸作为堆空间</strong></p>
+<p>​			但是在真机上，堆栈地址更高，<strong>远高于</strong><code>unidbg</code>设置的（当然unidbg可以设置）</p>
+<ul>
+<li>两者比较，<code>unidbg</code>的堆栈地址是<strong>固定的</strong>，每次运行他都是基于<code>memory.java</code>中设置的去执行，因此不管运行几次都是固定的空间，这可以作为监测点。</li>
+</ul>
+<h1 id="jni检测">jni检测<a hidden class="anchor" aria-hidden="true" href="#jni检测">#</a></h1>
+<h2 id="调用检测">调用检测<a hidden class="anchor" aria-hidden="true" href="#调用检测">#</a></h2>
+<p>​	<code>unidbg</code>代理了整个java层，将jni桥函数位于<code>0xfffe0000L - 0xffff0000L</code>， 每个跳板函数只有8个字节（中断指令、返回指令）</p>
+<p>​	在真机环境下，相邻的jni桥函数之间像个至少几十个字节</p>
+<h2 id="方法检测">方法检测<a hidden class="anchor" aria-hidden="true" href="#方法检测">#</a></h2>
+<p>​	<code>unidbg </code>处理jni的默认策略：会将在调用所有的类/方法时，<strong>默认成功获取</strong>。如 <code>findclass</code>、<code>getmethodid</code>等函数。</p>
+<p>​	把这个作为检测点的话，可以在app代码中添加，主动去找<strong>不存在</strong>的类，判断是否找到。  但是这个作为日志输出时比较明显，那么可以去寻找系统类，但是将其中的字母<strong>修改成近似字符或者空格</strong> 等隐蔽性更好（如在<code>getmethodid</code>的时候，修改方法签名）</p>
+<p>​	<strong>应对手段</strong>：<code>unidbg</code>提供了 <code>addNotFoundClass</code> 函数，主动告知unidbg目标类不在代码中，  <code>aceeptMethod</code>  和 <code>acceptFiled</code>（这两个需要重写方法，去抛出异常）</p>
+<h2 id="方法id">方法ID<a hidden class="anchor" aria-hidden="true" href="#方法id">#</a></h2>
+<p>​	<code>methodId</code>，在真机中是一个指向ArtMethod的<strong>结构体指针</strong>，而在<code>unidbg</code>，是对方法签名的一个<strong>hash值</strong>。  这里的对抗方法可以主动去构造计算方法的签名并计算哈希，对比<code>methodid</code></p>
+<h1 id="文件描述符">文件描述符<a hidden class="anchor" aria-hidden="true" href="#文件描述符">#</a></h1>
+<p>​	在真机设备中，使用<code>open</code>、<code>openat</code>等处理文件的函数，打开文件会返回一个文件描述符。是从0开始向正增长的。</p>
+<p>​	<code>0、1、2</code>对应的分别是<strong>标准输入、输出、错误</strong>这三个文件描述符</p>
+<p>​	在真机中基本上都有十几个文件交互，那么文件描述符都在<strong>20+</strong></p>
+<p>​	但是在undibg中只模拟了so，只有012这三个，那么后面交互的文件基本上都<strong>小于</strong>20</p>
+<h1 id="uname指令">uname指令<a hidden class="anchor" aria-hidden="true" href="#uname指令">#</a></h1>
+<p>​	<code>uname</code>指令可以返回系统信息、版本、架构等</p>
+<p>​	<code>unidbg</code>设计的时候主机信息设置的是**&ldquo;1.0.0.-unidbg&rdquo;**</p>
+<p>​	这里的检测点是可以主动执行<code>uname</code>函数，对比是否存在<strong>关键字</strong> “unidbg&quot;</p>
+<p>​	当然，对抗手段也很简单，直接修改unidbg代码中这部分的返回值为真机的返回值</p>
+<h1 id="运行时间检测">运行时间检测<a hidden class="anchor" aria-hidden="true" href="#运行时间检测">#</a></h1>
+<p>​	unidbg的模拟执行效率远大于手机的执行时间，可以比对这些时间。但是容易误报一些老旧版本的手机。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="next" href="https://SimpsonGet.github.io/zh/posts/tech/childgating/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>Frida Hook 子进程</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://SimpsonGet.github.io/zh/">Simpson&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
