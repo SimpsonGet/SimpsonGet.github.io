@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Tech | Simpson&#39;s Blog</title>
+<meta name="keywords" content="word 1, word 2">
+<meta name="description" content="">
+<meta name="author" content="simpson">
+<link rel="canonical" href="https://SimpsonGet.github.io/zh/posts/tech/">
+
+ <link crossorigin="anonymous" href="/assets/css/stylesheet.36819bea596090d8b48cf10d9831382996197aa7e4fc86f792f7c08c9ca4d23b.css" integrity="" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="16x16" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="32x32" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="apple-touch-icon" href="https://SimpsonGet.github.io/logo.gif">
+<link rel="mask-icon" href="https://SimpsonGet.github.io/logo.gif">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="https://SimpsonGet.github.io/zh/posts/tech/index.xml">
+<link rel="alternate" hreflang="zh" href="https://SimpsonGet.github.io/zh/posts/tech/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="https://SimpsonGet.github.io/zh/posts/tech/">
+  <meta property="og:site_name" content="Simpson&#39;s Blog">
+  <meta property="og:title" content="Tech">
+  <meta property="og:locale" content="zh">
+  <meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tech">
+<meta name="twitter:description" content="Nothing">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://SimpsonGet.github.io/zh/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Tech",
+      "item": "https://SimpsonGet.github.io/zh/posts/tech/"
+    }
+  ]
+}
+</script>
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://SimpsonGet.github.io/zh/" accesskey="h" title="Simpson&#39;s Blog (Alt + H)">Simpson&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header"><div class="breadcrumbs"><a href="https://SimpsonGet.github.io/zh/">主页</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/">Posts</a></div>
+  <h1>
+    Tech
+  </h1>
+</header>
+<div class="post-content"><!-- more -->
+
+
+</div>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[破解]飞book_禁止截图
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>使用frida绕过APP禁止截图的设置</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-05 18:23:53 +0800 CST'>2025-09-05</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;simpson</footer>
+  <a class="entry-link" aria-label="post link to [破解]飞book_禁止截图" href="https://SimpsonGet.github.io/zh/posts/tech/feishu/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Unidbg 检测
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>unidbg 部分 检测-对抗手段</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-08-26 20:22:51 +0800 CST'>2025-08-26</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;simpson</footer>
+  <a class="entry-link" aria-label="post link to Unidbg 检测" href="https://SimpsonGet.github.io/zh/posts/tech/unidbg_detect/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Frida Hook 子进程
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>frida hook不到？不应该啊？！尝试一下这个！</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-08-04 22:05:48 +0800 CST'>2025-08-04</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;simpson</footer>
+  <a class="entry-link" aria-label="post link to Frida Hook 子进程" href="https://SimpsonGet.github.io/zh/posts/tech/childgating/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">【VMP初探】某电商sign值分析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>第一次真实遇到VMP壳，学习一些逆向手段</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-07-24 15:09:08 +0800 CST'>2025-07-24</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;simpson</footer>
+  <a class="entry-link" aria-label="post link to 【VMP初探】某电商sign值分析" href="https://SimpsonGet.github.io/zh/posts/tech/du/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">【爬虫】唯品会APP逆向
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>逆向反爬参数的生成策略，并还原</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-07-18 12:19:49 +0800 CST'>2025-07-18</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;simpson</footer>
+  <a class="entry-link" aria-label="post link to 【爬虫】唯品会APP逆向" href="https://SimpsonGet.github.io/zh/posts/tech/vip/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">海外电商APP希Y某参数分析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>海外电商APP希Y某的armortoken参数生成算法逆向分析</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-07-13 23:08:05 +0800 CST'>2025-07-13</span>&nbsp;·&nbsp;10 分钟&nbsp;·&nbsp;simpson</footer>
+  <a class="entry-link" aria-label="post link to 海外电商APP希Y某参数分析" href="https://SimpsonGet.github.io/zh/posts/tech/shenin/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">梆梆加固免费壳分析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>分析梆梆加固中的对设备相关检测</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-07-08 10:52:17 +0800 CST'>2025-07-08</span>&nbsp;·&nbsp;8 分钟&nbsp;·&nbsp;simpson</footer>
+  <a class="entry-link" aria-label="post link to 梆梆加固免费壳分析" href="https://SimpsonGet.github.io/zh/posts/tech/bangbnagjiagu/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">x红书水印去除
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>x红书水印去除</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-06-30 22:01:50 +0800 CST'>2025-06-30</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;simpson</footer>
+  <a class="entry-link" aria-label="post link to x红书水印去除" href="https://SimpsonGet.github.io/zh/posts/tech/xhsunwatermark/"></a>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://SimpsonGet.github.io/zh/">Simpson&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

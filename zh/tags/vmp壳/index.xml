@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>VMP壳 on Simpson&#39;s Blog</title>
+    <link>https://SimpsonGet.github.io/zh/tags/vmp%E5%A3%B3/</link>
+    <description>Recent content in VMP壳 on Simpson&#39;s Blog</description>
+    <generator>Hugo -- 0.147.9</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 24 Jul 2025 15:09:08 +0800</lastBuildDate>
+    <atom:link href="https://SimpsonGet.github.io/zh/tags/vmp%E5%A3%B3/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【VMP初探】某电商sign值分析</title>
+      <link>https://SimpsonGet.github.io/zh/posts/tech/du/</link>
+      <pubDate>Thu, 24 Jul 2025 15:09:08 +0800</pubDate>
+      <guid>https://SimpsonGet.github.io/zh/posts/tech/du/</guid>
+      <description>第一次真实遇到VMP壳，学习一些逆向手段</description>
+    </item>
+  </channel>
+</rss>

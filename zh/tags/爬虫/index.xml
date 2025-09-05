@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>爬虫 on Simpson&#39;s Blog</title>
+    <link>https://SimpsonGet.github.io/zh/tags/%E7%88%AC%E8%99%AB/</link>
+    <description>Recent content in 爬虫 on Simpson&#39;s Blog</description>
+    <generator>Hugo -- 0.147.9</generator>
+    <language>zh</language>
+    <lastBuildDate>Fri, 18 Jul 2025 12:19:49 +0800</lastBuildDate>
+    <atom:link href="https://SimpsonGet.github.io/zh/tags/%E7%88%AC%E8%99%AB/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【爬虫】唯品会APP逆向</title>
+      <link>https://SimpsonGet.github.io/zh/posts/tech/vip/</link>
+      <pubDate>Fri, 18 Jul 2025 12:19:49 +0800</pubDate>
+      <guid>https://SimpsonGet.github.io/zh/posts/tech/vip/</guid>
+      <description>对唯品会搜素商品的报文中的参数authorization 逆向分析，最终复现搜素请求，并且自定义搜素内容爬虫，但未深入使用爬虫框架也未对爬到的商品-价格数据进行下一步处理</description>
+    </item>
+  </channel>
+</rss>

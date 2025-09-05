@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Owasp Tpo 10 学习 | Simpson&#39;s Blog</title>
+<meta name="keywords" content="漏洞介绍">
+<meta name="description" content="虽然到目前主要在学安卓逆向，但在面试的时候也会问到OWSAP top 10的一些基础网安问题，在这里学习记录一下">
+<meta name="author" content="simpson">
+<link rel="canonical" href="https://SimpsonGet.github.io/zh/posts/read/owasp/">
+
+ <link crossorigin="anonymous" href="/assets/css/stylesheet.36819bea596090d8b48cf10d9831382996197aa7e4fc86f792f7c08c9ca4d23b.css" integrity="" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="16x16" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="32x32" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="apple-touch-icon" href="https://SimpsonGet.github.io/logo.gif">
+<link rel="mask-icon" href="https://SimpsonGet.github.io/logo.gif">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://SimpsonGet.github.io/zh/posts/read/owasp/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="https://SimpsonGet.github.io/zh/posts/read/owasp/">
+  <meta property="og:site_name" content="Simpson&#39;s Blog">
+  <meta property="og:title" content="Owasp Tpo 10 学习">
+  <meta property="og:description" content="虽然到目前主要在学安卓逆向，但在面试的时候也会问到OWSAP top 10的一些基础网安问题，在这里学习记录一下">
+  <meta property="og:locale" content="zh">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-07-09T11:29:21+08:00">
+    <meta property="article:modified_time" content="2025-07-09T11:29:21+08:00">
+    <meta property="article:tag" content="理论">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Owasp Tpo 10 学习">
+<meta name="twitter:description" content="虽然到目前主要在学安卓逆向，但在面试的时候也会问到OWSAP top 10的一些基础网安问题，在这里学习记录一下">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://SimpsonGet.github.io/zh/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Read",
+      "item": "https://SimpsonGet.github.io/zh/posts/read/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "Owasp Tpo 10 学习",
+      "item": "https://SimpsonGet.github.io/zh/posts/read/owasp/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Owasp Tpo 10 学习",
+  "name": "Owasp Tpo 10 学习",
+  "description": "虽然到目前主要在学安卓逆向，但在面试的时候也会问到OWSAP top 10的一些基础网安问题，在这里学习记录一下",
+  "keywords": [
+    "漏洞介绍"
+  ],
+  "articleBody": "\r虽然到目前主要在学安卓逆向，但在面试的时候也会问到OWSAP top 10的一些基础网安问题，在这里学习记录一下\n注入漏洞Injection 漏洞解释 将不受信任的数据作为命令或者查询的一部分 发送到解析器，使目标再没有授权的情况下执行非预期的命令或者访问数据\n常见的注入类型：\nsql注入\n1 2 3 4 5 6 基本盲注：攻击者在输入字段中插入特殊字符（如单引号），观察应用程序的响应，判断是否存在注入漏洞。 联合查询注入：攻击者利用UNION语句将多个查询结果合并，从而获取额外的数据。 布尔型盲注：攻击者根据应用程序的响应来推断结果，通常通过逻辑运算符（如AND、OR）进行判断。 时间盲注：利用数据库查询的执行时间来判断条件是否满足，通过延长或缩短查询时间来获取信息。 报错注入：利用数据库的错误信息泄露敏感数据。 堆叠注入：通过在多个查询中插入注入代码，实现对数据库的复杂操作。 命令注入\nLDAP（轻量目录访问协议）\nxpath\nHQL注入\n危害\u0026防范手段 导致数据泄露、数据丢失、权限被非法获取等\n1 2 3 4 #防范手段 使用安全的API，不使用解释器； 对输入的特殊字符进行转义处理； 白名单控制允许的输入 失效的身份认证 漏洞解释 通过错误使用应用程序的身份认证和会话管理功能，攻击者能够破译密码、密钥或会话令牌，或者利用其它开发缺陷来暂时性或永久性冒充其他用户的身份\n1 2 3 #具体解释 场景：应用程序通过使用账号密码确认用户身份认证，登录成功后服务器下发token，一段时间内使用toen就可继续使用程序。 该漏洞就存在于，由于再确认用户身份、用户身份认证、会话管理的过程中因逻辑的漏洞或者使用了不当的机制。 撞库攻击（获得了账号密码）\n只有账号密码作为认证没有其他子认证措施\n会话超时时间设置的不合理\n危害\u0026防范手段 导致账户收到攻击，攻击者成功后就可以执行任意操作\n1 2 3 4 #防范手段 使用内置的会话管理功能 使用单一的入口点 确保在一开始登录SSL保护的网页 敏感数据泄露 漏洞解释 由于程序和api未能正确的保护敏感数据（未加密、加密手段不安全等），攻击者可以通过窃取或修改未加密的数据来进行一些行为（篡改数据、破坏数据）。\n防范手段 对传输过程中的数据、存储的数据以及浏览器的交互数据采用安全的手段加密。\nXML外部实体（XXE） XML External Entity attack （可扩展标记语言 外部实体注入攻击）\n由于早期的或者配置错误的XML处理器评估了XML文件中的外部实体应用，导致攻击者利用外部实体窃取使用URI文件处理器的内部文件和共享文件、监听内部扫描端口、执行远程代码和实施拒绝服务攻击。\n失效的访问控制 漏洞解释 未对通过身份验证的用户实施恰当的访问控制。攻击者可以利用这些缺陷访问未经授权的功能或数据（访问其他用户的帐户、查看敏感文件、修改其他用户的数据、更改访问权限等）。\n危害\u0026防范手段 这种漏洞可以损坏参数所引用的所有数据\n1 2 3 4 5 #防范手段 使用基于用户或会话的间接对象访问，这样可防止攻击者直接攻击未授权资源 访问检查：对任何来自不受信源所使用的所有对象进行访问控制检查 避免在url或网页中直接引用内部文件名或数据库关键字 验证用户输入和url请求，拒绝包含./ …/的请求 安全配置错误 漏洞解释 由于不安全的默认配置、不完整的临时配置、开源云存储、错误的HTTP 标头配置以及包含敏感信息的详细错误信息所造成的。\n危害\u0026防范手段 系统可能在未知的情况下被完全攻破，用户数据可能随着时间被全部盗走或篡改。甚至导致整个系统被完全破坏。\n1 2 3 4 #防范手段 自动化安装部署 及时了解并部署每个环节的软件更新和补丁信息 实施漏洞扫描和安全审计 跨站脚本（XSS） 漏洞解释 跨站脚本攻击\n当应用程序的新网页中包含不受信任的、未经恰当验证或转义的数据时，或者使用可以创建HTML或JavaScript 的浏览器API 更新现有的网页时，就会出现XSS 缺陷。XSS 让攻击者能够在受害者的浏览器中执行脚本，并劫持用户会话、破坏网站或将用户重定向到恶意站点。\n类型 存储型\n反射型\nDOM型\n危害\u0026防范手段 攻击者在受害者浏览器中执行脚本以劫持用户会话，插入恶意内容，重定向用户，使用恶意软件劫持用户浏览器、获得用户cookie等。\n1 2 3 #防范手段 验证输入 编码输出（用来确保输入的字符被视为数据，而不是作为html被浏览器所解析） 不安全的反序列化 不安全的反序列化会导致远程代码执行。即使反序列化缺陷不会导致远程代码执行，攻击者也可以利用它们来执行攻击，包括：重播攻击、注入攻击和特权升级攻击。\n使用含有已知漏洞的组件 漏洞解释 组件（例如：库、框架和其他软件模块）拥有和应用程序相同的权限。\n如果应用程序中含有已知漏洞的组件被攻击者利用，可能会造成严重的数据丢失或服务器接管。同时，使用含有已知漏洞的组件的应用程序和API可能会破坏应用程序防御、造成各种攻击并产生严重影响。\n防范手段 1 2 3 4 #防范手段 识别正在使用的组件和版本，包括所有的依赖 更新组件或引用的库文件到最新 建立安全策略来管理组件的使用 不足的日志记录和监控 不足的日志记录和监控，以及事件响应缺失或无效的集成，使攻击者能够进一步攻击系统、保持持续性或转向更多系统，以及篡改、提取或销毁数据。大多数缺陷研究显示，缺陷被检测出的时间超过200天，且通常通过外部检测方检测，而不是通过内部流程或监控检测。\n",
+  "wordCount" : "2157",
+  "inLanguage": "zh",
+  "datePublished": "2025-07-09T11:29:21+08:00",
+  "dateModified": "2025-07-09T11:29:21+08:00",
+  "author":[{
+    "@type": "Person",
+    "name": "simpson"
+  }],
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://SimpsonGet.github.io/zh/posts/read/owasp/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Simpson's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://SimpsonGet.github.io/img/logo.gif"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://SimpsonGet.github.io/zh/" accesskey="h" title="Simpson&#39;s Blog (Alt + H)">Simpson&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://SimpsonGet.github.io/zh/">主页</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/">Posts</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/read/">Read</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Owasp Tpo 10 学习
+    </h1>
+    <div class="post-meta"><span title='2025-07-09 11:29:21 +0800 CST'>2025-07-09</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;simpson
+
+</div>
+  </header> 
+  <div class="post-content"><!-- more -->
+<p>虽然到目前主要在学安卓逆向，但在面试的时候也会问到OWSAP top 10的一些基础网安问题，在这里学习记录一下</p>
+<h1 id="注入漏洞injection">注入漏洞Injection<a hidden class="anchor" aria-hidden="true" href="#注入漏洞injection">#</a></h1>
+<h2 id="漏洞解释">漏洞解释<a hidden class="anchor" aria-hidden="true" href="#漏洞解释">#</a></h2>
+<p>将不受信任的数据作为命令或者查询的一部分 发送到解析器，使目标再没有授权的情况下执行非预期的命令或者访问数据</p>
+<p>常见的注入类型：</p>
+<ul>
+<li>
+<p>sql注入</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">基本盲注：攻击者在输入字段中插入特殊字符（如单引号），观察应用程序的响应，判断是否存在注入漏洞。
+</span></span><span class="line"><span class="cl">联合查询注入：攻击者利用UNION语句将多个查询结果合并，从而获取额外的数据。
+</span></span><span class="line"><span class="cl">布尔型盲注：攻击者根据应用程序的响应来推断结果，通常通过逻辑运算符（如AND、OR）进行判断。
+</span></span><span class="line"><span class="cl">时间盲注：利用数据库查询的执行时间来判断条件是否满足，通过延长或缩短查询时间来获取信息。
+</span></span><span class="line"><span class="cl">报错注入：利用数据库的错误信息泄露敏感数据。
+</span></span><span class="line"><span class="cl">堆叠注入：通过在多个查询中插入注入代码，实现对数据库的复杂操作。
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>命令注入</p>
+</li>
+<li>
+<p>LDAP（轻量目录访问协议）</p>
+</li>
+<li>
+<p>xpath</p>
+</li>
+<li>
+<p>HQL注入</p>
+</li>
+</ul>
+<h2 id="危害防范手段">危害&amp;防范手段<a hidden class="anchor" aria-hidden="true" href="#危害防范手段">#</a></h2>
+<p>导致数据泄露、数据丢失、权限被非法获取等</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">#防范手段
+</span></span><span class="line"><span class="cl">使用安全的API，不使用解释器；
+</span></span><span class="line"><span class="cl">对输入的特殊字符进行转义处理；
+</span></span><span class="line"><span class="cl">白名单控制允许的输入
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="失效的身份认证">失效的身份认证<a hidden class="anchor" aria-hidden="true" href="#失效的身份认证">#</a></h1>
+<h2 id="漏洞解释-1">漏洞解释<a hidden class="anchor" aria-hidden="true" href="#漏洞解释-1">#</a></h2>
+<p>通过错误使用应用程序的身份认证和会话管理功能，攻击者能够破译密码、密钥或会话令牌，或者利用其它开发缺陷来暂时性或永久性冒充其他用户的身份</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">#具体解释
+</span></span><span class="line"><span class="cl">场景：应用程序通过使用账号密码确认用户身份认证，登录成功后服务器下发token，一段时间内使用toen就可继续使用程序。
+</span></span><span class="line"><span class="cl">该漏洞就存在于，由于再确认用户身份、用户身份认证、会话管理的过程中因逻辑的漏洞或者使用了不当的机制。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>
+<p>撞库攻击（获得了账号密码）</p>
+</li>
+<li>
+<p>只有账号密码作为认证没有其他子认证措施</p>
+</li>
+<li>
+<p>会话超时时间设置的不合理</p>
+</li>
+</ul>
+<h2 id="危害防范手段-1">危害&amp;防范手段<a hidden class="anchor" aria-hidden="true" href="#危害防范手段-1">#</a></h2>
+<p>导致账户收到攻击，攻击者成功后就可以执行任意操作</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">#防范手段
+</span></span><span class="line"><span class="cl">使用内置的会话管理功能
+</span></span><span class="line"><span class="cl">使用单一的入口点
+</span></span><span class="line"><span class="cl">确保在一开始登录SSL保护的网页
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="敏感数据泄露">敏感数据泄露<a hidden class="anchor" aria-hidden="true" href="#敏感数据泄露">#</a></h1>
+<h2 id="漏洞解释-2">漏洞解释<a hidden class="anchor" aria-hidden="true" href="#漏洞解释-2">#</a></h2>
+<p>由于程序和api未能正确的保护敏感数据（未加密、加密手段不安全等），攻击者可以通过窃取或修改未加密的数据来进行一些行为（篡改数据、破坏数据）。</p>
+<h2 id="防范手段">防范手段<a hidden class="anchor" aria-hidden="true" href="#防范手段">#</a></h2>
+<p>对传输过程中的数据、存储的数据以及浏览器的交互数据采用安全的手段加密。</p>
+<h1 id="xml外部实体xxe">XML外部实体（XXE）<a hidden class="anchor" aria-hidden="true" href="#xml外部实体xxe">#</a></h1>
+<p>XML External Entity attack （可扩展标记语言 外部实体注入攻击）</p>
+<p>由于早期的或者配置错误的XML处理器评估了XML文件中的外部实体应用，导致攻击者利用外部实体窃取使用URI文件处理器的内部文件和共享文件、监听内部扫描端口、执行远程代码和实施拒绝服务攻击。</p>
+<h1 id="失效的访问控制">失效的访问控制<a hidden class="anchor" aria-hidden="true" href="#失效的访问控制">#</a></h1>
+<h2 id="漏洞解释-3">漏洞解释<a hidden class="anchor" aria-hidden="true" href="#漏洞解释-3">#</a></h2>
+<p><strong>未</strong>对通过身份验证的用户实施恰当的访问控制。攻击者可以利用这些缺陷<strong>访问未经授权的功能或数据</strong>（访问其他用户的帐户、查看敏感文件、修改其他用户的数据、更改访问权限等）。</p>
+<h2 id="危害防范手段-2">危害&amp;防范手段<a hidden class="anchor" aria-hidden="true" href="#危害防范手段-2">#</a></h2>
+<p>这种漏洞可以损坏参数所引用的所有数据</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">#防范手段
+</span></span><span class="line"><span class="cl">使用基于用户或会话的间接对象访问，这样可防止攻击者直接攻击未授权资源
+</span></span><span class="line"><span class="cl">访问检查：对任何来自不受信源所使用的所有对象进行访问控制检查
+</span></span><span class="line"><span class="cl">避免在url或网页中直接引用内部文件名或数据库关键字
+</span></span><span class="line"><span class="cl">验证用户输入和url请求，拒绝包含./ …/的请求
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="安全配置错误">安全配置错误<a hidden class="anchor" aria-hidden="true" href="#安全配置错误">#</a></h1>
+<h2 id="漏洞解释-4">漏洞解释<a hidden class="anchor" aria-hidden="true" href="#漏洞解释-4">#</a></h2>
+<p>由于不安全的默认配置、不完整的临时配置、开源云存储、错误的HTTP 标头配置以及包含敏感信息的详细错误信息所造成的。</p>
+<h2 id="危害防范手段-3">危害&amp;防范手段<a hidden class="anchor" aria-hidden="true" href="#危害防范手段-3">#</a></h2>
+<p>系统可能在未知的情况下被完全攻破，用户数据可能随着时间被全部盗走或篡改。甚至导致整个系统被完全破坏。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">#防范手段
+</span></span><span class="line"><span class="cl">自动化安装部署
+</span></span><span class="line"><span class="cl">及时了解并部署每个环节的软件更新和补丁信息
+</span></span><span class="line"><span class="cl">实施漏洞扫描和安全审计
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="跨站脚本xss">跨站脚本（XSS）<a hidden class="anchor" aria-hidden="true" href="#跨站脚本xss">#</a></h1>
+<h2 id="漏洞解释-5">漏洞解释<a hidden class="anchor" aria-hidden="true" href="#漏洞解释-5">#</a></h2>
+<p>跨站脚本攻击</p>
+<p>当应用程序的新网页中包含不受信任的、未经恰当验证或转义的数据时，或者使用可以创建HTML或JavaScript 的浏览器API 更新现有的网页时，就会出现XSS 缺陷。XSS 让攻击者能够在受害者的浏览器中执行脚本，并劫持用户会话、破坏网站或将用户重定向到恶意站点。</p>
+<h2 id="类型">类型<a hidden class="anchor" aria-hidden="true" href="#类型">#</a></h2>
+<p>存储型</p>
+<p>反射型</p>
+<p>DOM型</p>
+<h2 id="危害防范手段-4">危害&amp;防范手段<a hidden class="anchor" aria-hidden="true" href="#危害防范手段-4">#</a></h2>
+<p>攻击者在受害者浏览器中执行脚本以劫持用户会话，插入恶意内容，重定向用户，使用恶意软件劫持用户浏览器、获得用户cookie等。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">#防范手段
+</span></span><span class="line"><span class="cl">验证输入
+</span></span><span class="line"><span class="cl">编码输出（用来确保输入的字符被视为数据，而不是作为html被浏览器所解析）
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="不安全的反序列化">不安全的反序列化<a hidden class="anchor" aria-hidden="true" href="#不安全的反序列化">#</a></h1>
+<p>不安全的反序列化会导致远程代码执行。即使反序列化缺陷不会导致远程代码执行，攻击者也可以利用它们来执行攻击，包括：重播攻击、注入攻击和特权升级攻击。</p>
+<h1 id="使用含有已知漏洞的组件">使用含有已知漏洞的组件<a hidden class="anchor" aria-hidden="true" href="#使用含有已知漏洞的组件">#</a></h1>
+<h2 id="漏洞解释-6">漏洞解释<a hidden class="anchor" aria-hidden="true" href="#漏洞解释-6">#</a></h2>
+<p>组件（例如：库、框架和其他软件模块）拥有和应用程序相同的权限。</p>
+<p>如果应用程序中<strong>含有已知漏洞的组件</strong>被攻击者利用，可能会造成严重的数据丢失或服务器接管。同时，使用含有已知漏洞的组件的应用程序和API可能会破坏应用程序防御、造成各种攻击并产生严重影响。</p>
+<h2 id="防范手段-1">防范手段<a hidden class="anchor" aria-hidden="true" href="#防范手段-1">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">#防范手段
+</span></span><span class="line"><span class="cl">识别正在使用的组件和版本，包括所有的依赖
+</span></span><span class="line"><span class="cl">更新组件或引用的库文件到最新
+</span></span><span class="line"><span class="cl">建立安全策略来管理组件的使用
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="不足的日志记录和监控">不足的日志记录和监控<a hidden class="anchor" aria-hidden="true" href="#不足的日志记录和监控">#</a></h1>
+<p>不足的日志记录和监控，以及事件响应缺失或无效的集成，使攻击者能够进一步攻击系统、保持持续性或转向更多系统，以及篡改、提取或销毁数据。大多数缺陷研究显示，缺陷被检测出的时间超过200天，且通常通过外部检测方检测，而不是通过内部流程或监控检测。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://SimpsonGet.github.io/zh/tags/%E7%90%86%E8%AE%BA/">理论</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://SimpsonGet.github.io/zh/posts/tech/shenin/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>海外电商APP希Y某参数分析</span>
+  </a>
+  <a class="next" href="https://SimpsonGet.github.io/zh/posts/tech/bangbnagjiagu/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>梆梆加固免费壳分析</span>
+  </a>
+</nav>
+
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="分享到 GitHub" href="https://github.com/SimpsonGet">
+            <svg version="1.1" viewBox="0 0 24 24" width="30px" height="30px" fill="#171515"> 
+                
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://SimpsonGet.github.io/zh/">Simpson&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

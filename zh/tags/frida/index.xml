@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Frida on Simpson&#39;s Blog</title>
+    <link>https://SimpsonGet.github.io/zh/tags/frida/</link>
+    <description>Recent content in Frida on Simpson&#39;s Blog</description>
+    <generator>Hugo -- 0.147.9</generator>
+    <language>zh</language>
+    <lastBuildDate>Fri, 05 Sep 2025 18:23:53 +0800</lastBuildDate>
+    <atom:link href="https://SimpsonGet.github.io/zh/tags/frida/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>[破解]飞book_禁止截图</title>
+      <link>https://SimpsonGet.github.io/zh/posts/tech/feishu/</link>
+      <pubDate>Fri, 05 Sep 2025 18:23:53 +0800</pubDate>
+      <guid>https://SimpsonGet.github.io/zh/posts/tech/feishu/</guid>
+      <description>某办公软件设置禁止截图，通过对关键api的hook，破解从而正常截图</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>【VMP初探】某电商sign值分析 | Simpson&#39;s Blog</title>
+<meta name="keywords" content="VMP壳">
+<meta name="description" content="第一次真实遇到VMP壳，学习一些逆向手段">
+<meta name="author" content="simpson">
+<link rel="canonical" href="https://SimpsonGet.github.io/zh/posts/tech/du/">
+
+ <link crossorigin="anonymous" href="/assets/css/stylesheet.36819bea596090d8b48cf10d9831382996197aa7e4fc86f792f7c08c9ca4d23b.css" integrity="" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="16x16" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="icon" type="image/png" sizes="32x32" href="https://SimpsonGet.github.io/img/logo.gif">
+<link rel="apple-touch-icon" href="https://SimpsonGet.github.io/logo.gif">
+<link rel="mask-icon" href="https://SimpsonGet.github.io/logo.gif">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://SimpsonGet.github.io/zh/posts/tech/du/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="https://SimpsonGet.github.io/zh/posts/tech/du/">
+  <meta property="og:site_name" content="Simpson&#39;s Blog">
+  <meta property="og:title" content="【VMP初探】某电商sign值分析">
+  <meta property="og:description" content="第一次真实遇到VMP壳，学习一些逆向手段">
+  <meta property="og:locale" content="zh">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-07-24T15:09:08+08:00">
+    <meta property="article:modified_time" content="2025-07-24T15:09:08+08:00">
+    <meta property="article:tag" content="VMP壳">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【VMP初探】某电商sign值分析">
+<meta name="twitter:description" content="第一次真实遇到VMP壳，学习一些逆向手段">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://SimpsonGet.github.io/zh/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Tech",
+      "item": "https://SimpsonGet.github.io/zh/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "【VMP初探】某电商sign值分析",
+      "item": "https://SimpsonGet.github.io/zh/posts/tech/du/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "【VMP初探】某电商sign值分析",
+  "name": "【VMP初探】某电商sign值分析",
+  "description": "第一次真实遇到VMP壳，学习一些逆向手段",
+  "keywords": [
+    "VMP壳"
+  ],
+  "articleBody": " com.shizhuang.duapp\n5.71.0\n总体来说，加密算法是常规的，这次样本的学习的地方就是对VMP壳的处理手段（直接对jni函数的trace、hook绕过壳和混淆。更深入的vmp还需继续学习） 搜索部分还有图形验证码，数据也是加密的\n先看看这个热榜的接口，和那些有共同的new sign\n直接python，可以复现\nheader的参数都与 newsign有关，而获取每天的热榜肯定与时间戳是有关系的，所以现在分析newsign的生成，后续就可以获取每天的热榜\nnewSign分析 根据热榜的报文是GET所以这里定位的是上图中的第一个条\n过frida检测 得物有frida检测，开启frida软件直接闪退了\n看了一下也是那一套检测，直接hook dlopen 将创建pthread_create的函数置空\nnewSign一致，验证上面定位正确\njava分析 总结： 以loginToken、platform、timestamp、uuid、v以及对应的值拼接为字符串，通过jni函数IL得到结果，在进行md5，为最终结果 根据hook的结果x0.h()参数str如下：\n？但是根据代码中的逻辑，这里应该是为空的 (应该是热修复替换了)\n1 76dd135c07ed833c********9ca6b5d85f471b44a42bb382bbaad346f37b0d3193b22470362bf4b267f4f8f30b88b0b1d69dc1f8******1508292aa7869f1793|2622023754|1753003762|33f8c808aab40b67590da0565ab9115096841217|1-0|d41d8cd903d0336c x0.h函数如下\n核心逻辑再JNI函数 IL中\ndex vmp的特征\n1 2 3 4 第一个参数，其实就是代表了当前这个函数，用这个数字来索引已经被虚拟化的代码来执行。 使用了大量的jni函数而且，没有什么别的函数 写成通用的c成调用任何java方法的功能 具有常量函数列表 将jni函数返回值进行md5加密，就获得了最终的newSign的值\n经验证，k（）是常规md5\n1 str=loginToken76dd135c07ed833c*********addba567339ca6b5d85f471b44a42bb382bbaad346f37b0d3193b22470362bf4b267f4f8f30b88b******5f7dcec6f1508292aa7869f1793|2622023754|1753003762|33f8c808aab40b67590da0565ab9115096841217|1-0|d41d**cplatformandroidtimestamp1753082568871uuide31c***77*1061v5.71.0 获得context的类型为com.shizhuang.duapp.modules.app.DuApplication\n将hook到的数据和报文数据对比，如下这些值是相关的，logintoken需要看来源\n函数参数 报文数据 值 loginToken duloginToken 76dd135c07？？？5f471b44a42bb382bbaad346f3？？？b88b0b1d69dc1f8f73115f7dcec6f1508292aa7869f1793 timestamp timestamp 175308256887 platform duplatform android v duv 5.71.0 源数据 logintoken logintoken 是 传入的str，按理来说java层分析到是空的，但是实际不是也不可能是空的\n大概率是进入了热修复框架中替换了str\nuuid 使用美团的热修复框架\n不过这里多次测试都是固定值，就不继续看了\nnative lib: libGameVMP.so\nmethod_name:IL\noffset: 0xdac0\n先分析IL函数\nso文件修复 so文件应该被加密了，需要从内存dump，+修复\n在本机上\nso_base = 0x741ac05000\nso_size = 0x77000\n用sofixer修复\nnewway frida-dump\n这个工具整合了前面的人工一步步的步骤\nIL函数分析 1 2 3 public static String doWork(Object obj, String str) { return (String) NCall.IL(new Object[]{362, obj, str}); } 参数是由三部分构成的，obj为context\n针对VMP壳，需要获得JNI函数在内存的地址去分析？？？\n虚假控制流的 ollvm， 这里x，y这些全局变量就用作不透明谓词，对于这种需要trace找到真实路径并分析\n定参分析 固定参数主动调用，方便后续分析\n因为最终的结果native还是得通过jstring的形式返回，那么去hook相关的jni接口去定位它，这样做可以减少vmp壳和混淆的干扰\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 #相关jstring处理函数 jstring (*NewString)(JNIEnv*, const jchar*, jsize); jsize (*GetStringLength)(JNIEnv*, jstring); const jchar* (*GetStringChars)(JNIEnv*, jstring, jboolean*); void (*ReleaseStringChars)(JNIEnv*, jstring, const jchar*); jstring (*NewStringUTF)(JNIEnv*, const char*); jsize (*GetStringUTFLength)(JNIEnv*, jstring); /* JNI spec says this returns const jbyte*, but that's inconsistent */ const char* (*GetStringUTFChars)(JNIEnv*, jstring, jboolean*); void (*ReleaseStringUTFChars)(JNIEnv*, jstring, const char*); jsize (*GetArrayLength)(JNIEnv*, jarray); jobjectArray (*NewObjectArray)(JNIEnv*, jsize, jclass, jobject); jobject (*GetObjectArrayElement)(JNIEnv*, jobjectArray, jsize); void (*SetObjectArrayElement)(JNIEnv*, jobjectArray, jsize, jobject); 在 libdewuhelper.so!encode+0x138!+0x185c 调用了NewStringUTF方法构建了字符串\nnative-2 lib:libdewuhelper\noffset:0x185c\nmethodname:encode\n同上述native中一样dump+修复，找到调用位置\nhook encode函数\n1 2 3 a3就是java输入的object中的str a4是位置01组成的字符串 “010110100010001010010010000011000111001011101010101000101110111010011010101101101010001000101100010110100010001010011010110011001111001011100010101000100100110010110010100010101011110010111100” a4是给getvalue用的？因为一个参数\n这个是将 8 字节压缩成一个字符，使用了一种非对称加权累加混淆算法。类似于自定义 base256 编码（非标准），并在结果上加 48。 __int64 __fastcall getValue(const char *a1)\ngetvalue指向0x160C处的getValue，尝试hook\n密钥就是d2*****78a61吗？？（因为中间没有其他操作，直接hook 下面这个aes的参数获取参数一样）\n是常规aes吗？？？ hook这个位置验证一下（是的）\n直接将v11，value通过cyberchef验证是不对的~~（魔改过？）~~\n最后进行了base64编码\naes分析 平坦化混淆的算法\n将参数处理后最后调用的是AES128_ECB_encrypt\n直接hookAES128_ECB_encrypt\n那其实这里的分析没有意义，直接hook最初的j_xxx，得到的返回值就是了，因为它本身也就是原始aes\n参数分析 1 v18 = (char *)j_AES_128_ECB_PKCS5Padding_Encrypt(v11, Value); [v11]\n就是java传入的str\n[value]\n密钥变相硬编码，虽然是通过getvalue得到的，但是传入的str是一样的\n请求还原 根据前面的分析，在请求得物热榜的时候，报文中只有一下四个值和sign相关\n这些是必要头\n成功还原\n更改参数生成后成功拉去求响应\n参考 https://so.csdn.net/so/search?q=libgamevmp\u0026t=blog\u0026u=linchaolong\nhttps://mp.weixin.qq.com/s/x6xIZ3cQ8fsVRpWORC45HA\n",
+  "wordCount" : "2122",
+  "inLanguage": "zh",
+  "datePublished": "2025-07-24T15:09:08+08:00",
+  "dateModified": "2025-07-24T15:09:08+08:00",
+  "author":[{
+    "@type": "Person",
+    "name": "simpson"
+  }],
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://SimpsonGet.github.io/zh/posts/tech/du/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Simpson's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://SimpsonGet.github.io/img/logo.gif"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://SimpsonGet.github.io/zh/" accesskey="h" title="Simpson&#39;s Blog (Alt + H)">Simpson&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://SimpsonGet.github.io/zh/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://SimpsonGet.github.io/zh/">主页</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/">Posts</a>&nbsp;»&nbsp;<a href="https://SimpsonGet.github.io/zh/posts/tech/">Tech</a></div>
+    <h1 class="post-title entry-hint-parent">
+      【VMP初探】某电商sign值分析
+    </h1>
+    <div class="post-meta"><span title='2025-07-24 15:09:08 +0800 CST'>2025-07-24</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;simpson
+
+</div>
+  </header> <div class="toc">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">目录</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#newsign%e5%88%86%e6%9e%90" aria-label="newSign分析">newSign分析</a><ul>
+                        
+                <li>
+                    <a href="#%e8%bf%87frida%e6%a3%80%e6%b5%8b" aria-label="过frida检测">过frida检测</a></li>
+                <li>
+                    <a href="#java%e5%88%86%e6%9e%90" aria-label="java分析">java分析</a><ul>
+                        
+                <li>
+                    <a href="#%e6%ba%90%e6%95%b0%e6%8d%ae" aria-label="源数据">源数据</a><ul>
+                        
+                <li>
+                    <a href="#logintoken" aria-label="logintoken">logintoken</a></li>
+                <li>
+                    <a href="#uuid" aria-label="uuid">uuid</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#native" aria-label="native">native</a><ul>
+                        
+                <li>
+                    <a href="#so%e6%96%87%e4%bb%b6%e4%bf%ae%e5%a4%8d" aria-label="so文件修复">so文件修复</a><ul>
+                        
+                <li>
+                    <a href="#newway" aria-label="newway">newway</a></li></ul>
+                </li>
+                <li>
+                    <a href="#il%e5%87%bd%e6%95%b0%e5%88%86%e6%9e%90" aria-label="IL函数分析">IL函数分析</a><ul>
+                        
+                <li>
+                    <a href="#%e5%ae%9a%e5%8f%82%e5%88%86%e6%9e%90" aria-label="定参分析">定参分析</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#native-2" aria-label="native-2">native-2</a><ul>
+                        
+                <li>
+                    <a href="#aes%e5%88%86%e6%9e%90" aria-label="aes分析">aes分析</a></li>
+                <li>
+                    <a href="#%e5%8f%82%e6%95%b0%e5%88%86%e6%9e%90" aria-label="参数分析">参数分析</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e8%af%b7%e6%b1%82%e8%bf%98%e5%8e%9f" aria-label="请求还原">请求还原</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><hr>
+<p><code>com.shizhuang.duapp</code></p>
+<p><code>5.71.0</code></p>
+<hr>
+<ul>
+<li>总体来说，加密算法是常规的，这次样本的学习的地方就是对VMP壳的处理手段（直接对jni函数的trace、hook绕过壳和混淆。更深入的vmp还需继续学习）</li>
+</ul>
+<p>搜索部分还有图形验证码，数据也是加密的</p>
+<p>先看看这个热榜的接口，和那些有共同的new sign</p>
+<p><img alt="image-20250721141808531" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721141808531.png"></p>
+<p>直接python，可以复现</p>
+<p>header的参数都与 newsign有关，而获取每天的热榜肯定与时间戳是有关系的，所以现在分析newsign的生成，后续就可以获取每天的热榜</p>
+<h1 id="newsign分析">newSign分析<a hidden class="anchor" aria-hidden="true" href="#newsign分析">#</a></h1>
+<p><img alt="image-20250721143614510" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721143614510.png"></p>
+<p>根据热榜的报文是GET所以这里定位的是上图中的第一个条</p>
+<p><img alt="image-20250721143810286" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721143810286.png"></p>
+<h2 id="过frida检测">过frida检测<a hidden class="anchor" aria-hidden="true" href="#过frida检测">#</a></h2>
+<p>得物有frida检测，开启frida软件直接闪退了</p>
+<p><img alt="image-20250721144219605" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721144219605.png"></p>
+<p>看了一下也是那一套检测，直接hook dlopen 将创建pthread_create的函数置空</p>
+<p><img alt="image-20250721144336156" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721144336156.png"></p>
+<p>newSign一致，验证上面定位正确</p>
+<p><img alt="image-20250721145612563" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721145612563.png"></p>
+<h2 id="java分析">java分析<a hidden class="anchor" aria-hidden="true" href="#java分析">#</a></h2>
+<ul>
+<li><strong>总结</strong>： 以loginToken、platform、timestamp、uuid、v以及对应的值拼接为字符串，通过jni函数IL得到结果，在进行md5，为最终结果</li>
+</ul>
+<p>根据hook的结果x0.h()参数str如下：</p>
+<p><del>？但是根据代码中的逻辑，这里应该是为空的</del> (应该是热修复替换了)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">76dd135c07ed833c********9ca6b5d85f471b44a42bb382bbaad346f37b0d3193b22470362bf4b267f4f8f30b88b0b1d69dc1f8******1508292aa7869f1793|2622023754|1753003762|33f8c808aab40b67590da0565ab9115096841217|1-0|d41d8cd903d0336c
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>x0.h函数如下</p>
+<p><img alt="image-20250721152609667" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721152609667.png"></p>
+<p>核心逻辑再JNI函数  IL中</p>
+<p><img alt="image-20250721154522960" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721154522960.png"></p>
+<p><strong>dex vmp</strong>的特征</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">第一个参数，其实就是代表了当前这个函数，用这个数字来索引已经被虚拟化的代码来执行。
+</span></span><span class="line"><span class="cl">使用了大量的jni函数而且，没有什么别的函数
+</span></span><span class="line"><span class="cl">写成通用的c成调用任何java方法的功能
+</span></span><span class="line"><span class="cl">具有常量函数列表
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img alt="image-20250721151947057" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721151947057.png"></p>
+<p><img alt="image-20250721151941929" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721151941929.png"></p>
+<p>将jni函数返回值进行md5加密，就获得了最终的newSign的值</p>
+<p><img alt="image-20250721152025212" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721152025212.png"></p>
+<p>经验证，k（）是常规md5</p>
+<p><img alt="image-20250721152411145" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721152411145.png"></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">str=loginToken76dd135c07ed833c*********addba567339ca6b5d85f471b44a42bb382bbaad346f37b0d3193b22470362bf4b267f4f8f30b88b******5f7dcec6f1508292aa7869f1793|2622023754|1753003762|33f8c808aab40b67590da0565ab9115096841217|1-0|d41d**cplatformandroidtimestamp1753082568871uuide31c***77*1061v5.71.0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>获得context的类型为<code>com.shizhuang.duapp.modules.app.DuApplication</code></p>
+<p><img alt="image-20250724115158152" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724115158152.png"></p>
+<p>将hook到的数据和报文数据对比，如下这些值是相关的，<code>logintoken</code>需要看来源</p>
+<table>
+  <thead>
+      <tr>
+          <th>函数参数</th>
+          <th>报文数据</th>
+          <th>值</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>loginToken</td>
+          <td>duloginToken</td>
+          <td>76dd135c07？？？5f471b44a42bb382bbaad346f3？？？b88b0b1d69dc1f8f73115f7dcec6f1508292aa7869f1793</td>
+      </tr>
+      <tr>
+          <td>timestamp</td>
+          <td>timestamp</td>
+          <td>175308256887</td>
+      </tr>
+      <tr>
+          <td>platform</td>
+          <td>duplatform</td>
+          <td>android</td>
+      </tr>
+      <tr>
+          <td>v</td>
+          <td>duv</td>
+          <td>5.71.0</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="源数据">源数据<a hidden class="anchor" aria-hidden="true" href="#源数据">#</a></h3>
+<h4 id="logintoken">logintoken<a hidden class="anchor" aria-hidden="true" href="#logintoken">#</a></h4>
+<p><code>logintoken</code> 是 传入的str，按理来说java层分析到是空的，但是实际不是也不可能是空的</p>
+<p>大概率是进入了热修复框架中替换了str</p>
+<p><img alt="image-20250721155811195" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721155811195.png"></p>
+<h4 id="uuid">uuid<a hidden class="anchor" aria-hidden="true" href="#uuid">#</a></h4>
+<p><img alt="image-20250724150211323" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724150211323.png"></p>
+<p>使用美团的热修复框架</p>
+<p>不过这里多次测试都是固定值，就不继续看了</p>
+<h2 id="native">native<a hidden class="anchor" aria-hidden="true" href="#native">#</a></h2>
+<hr>
+<p>lib: <code>libGameVMP.so</code></p>
+<p>method_name:<code>IL</code></p>
+<p>offset:<code> 0xdac0</code></p>
+<hr>
+<p>先分析<code>IL</code>函数</p>
+<h3 id="so文件修复">so文件修复<a hidden class="anchor" aria-hidden="true" href="#so文件修复">#</a></h3>
+<p>so文件应该被加密了，需要从内存dump，+修复</p>
+<p><img alt="image-20250721161030931" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721161030931.png"></p>
+<p><img alt="image-20250721160951133" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721160951133.png"></p>
+<p>在本机上</p>
+<p>so_base = <code>0x741ac05000</code></p>
+<p>so_size = <code>0x77000</code></p>
+<p><img alt="image-20250721163053505" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721163053505.png"></p>
+<p>用sofixer修复</p>
+<p><img alt="image-20250721164109150" loading="lazy" src="/zh/posts/tech/du/picture/image-20250721164109150.png"></p>
+<h4 id="newway">newway<a hidden class="anchor" aria-hidden="true" href="#newway">#</a></h4>
+<p>frida-dump</p>
+<p>这个工具整合了前面的人工一步步的步骤</p>
+<h3 id="il函数分析">IL函数分析<a hidden class="anchor" aria-hidden="true" href="#il函数分析">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">doWork</span><span class="p">(</span><span class="n">Object</span><span class="w"> </span><span class="n">obj</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">String</span><span class="p">)</span><span class="w"> </span><span class="n">NCall</span><span class="p">.</span><span class="na">IL</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Object</span><span class="o">[]</span><span class="p">{</span><span class="n">362</span><span class="p">,</span><span class="w"> </span><span class="n">obj</span><span class="p">,</span><span class="w"> </span><span class="n">str</span><span class="p">});</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>参数是由三部分构成的，obj为context</p>
+<p>针对VMP壳，需要获得JNI函数在内存的地址去分析？？？</p>
+<p>虚假控制流的 ollvm， 这里x，y这些全局变量就用作不透明谓词，对于这种需要<strong>trace找到真实路径并分析</strong></p>
+<p><img alt="image-20250724110004947" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724110004947.png"></p>
+<h4 id="定参分析">定参分析<a hidden class="anchor" aria-hidden="true" href="#定参分析">#</a></h4>
+<p>固定参数主动调用，方便后续分析</p>
+<p><img alt="image-20250724115933463" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724115933463.png"></p>
+<p>因为最终的结果native还是得通过jstring的形式返回，那么去hook相关的jni接口去定位它，这样做可以减少vmp壳和混淆的干扰</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">#相关jstring处理函数
+</span></span><span class="line"><span class="cl">jstring     (*NewString)(JNIEnv*, const jchar*, jsize);
+</span></span><span class="line"><span class="cl">jsize       (*GetStringLength)(JNIEnv*, jstring);
+</span></span><span class="line"><span class="cl">const jchar* (*GetStringChars)(JNIEnv*, jstring, jboolean*);
+</span></span><span class="line"><span class="cl">void        (*ReleaseStringChars)(JNIEnv*, jstring, const jchar*);
+</span></span><span class="line"><span class="cl">jstring     (*NewStringUTF)(JNIEnv*, const char*);
+</span></span><span class="line"><span class="cl">jsize       (*GetStringUTFLength)(JNIEnv*, jstring);
+</span></span><span class="line"><span class="cl">/* JNI spec says this returns const jbyte*, but that&#39;s inconsistent */
+</span></span><span class="line"><span class="cl">const char* (*GetStringUTFChars)(JNIEnv*, jstring, jboolean*);
+</span></span><span class="line"><span class="cl">void        (*ReleaseStringUTFChars)(JNIEnv*, jstring, const char*);
+</span></span><span class="line"><span class="cl">jsize       (*GetArrayLength)(JNIEnv*, jarray);
+</span></span><span class="line"><span class="cl">jobjectArray (*NewObjectArray)(JNIEnv*, jsize, jclass, jobject);
+</span></span><span class="line"><span class="cl">jobject     (*GetObjectArrayElement)(JNIEnv*, jobjectArray, jsize);
+</span></span><span class="line"><span class="cl">void        (*SetObjectArrayElement)(JNIEnv*, jobjectArray, jsize, jobject);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在 libdewuhelper.so!encode+0x138!+0x185c  调用了<code>NewStringUTF</code>方法构建了字符串</p>
+<p><img alt="image-20250724121449050" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724121449050.png"></p>
+<h2 id="native-2">native-2<a hidden class="anchor" aria-hidden="true" href="#native-2">#</a></h2>
+<hr>
+<p>lib:<code>libdewuhelper</code></p>
+<p>offset:<code>0x185c</code></p>
+<p>methodname:<code>encode</code></p>
+<hr>
+<p>同上述native中一样dump+修复，找到调用位置</p>
+<p><img alt="image-20250724122210882" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724122210882.png"></p>
+<p>hook encode函数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">a3就是java输入的object中的str
+</span></span><span class="line"><span class="cl">a4是位置01组成的字符串
+</span></span><span class="line"><span class="cl">“010110100010001010010010000011000111001011101010101000101110111010011010101101101010001000101100010110100010001010011010110011001111001011100010101000100100110010110010100010101011110010111100”
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img alt="image-20250724131602996" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724131602996.png"></p>
+<p>a4是给getvalue用的？因为一个参数</p>
+<ul>
+<li>这个是将 8 字节压缩成一个字符，<strong>使用了一种非对称加权累加混淆算法</strong>。类似于自定义 base256 编码（非标准），并在结果上加 48。</li>
+</ul>
+<p>__int64 __fastcall getValue(const char *a1)</p>
+<p><img alt="image-20250724131805173" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724131805173.png"></p>
+<p>getvalue指向<code>0x160C</code>处的getValue，尝试hook</p>
+<p><img alt="image-20250724132550017" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724132550017.png"></p>
+<p>密钥就是<code>d2*****78a61</code>吗？？（因为中间没有其他操作，直接hook 下面这个aes的参数获取参数一样）</p>
+<p>是常规aes吗？？？ hook这个位置验证一下（是的）</p>
+<p><img alt="image-20250724123152095" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724123152095.png"></p>
+<p>直接将v11，value通过cyberchef验证是不对的~~（魔改过？）~~</p>
+<p><img alt="image-20250724134212938" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724134212938.png"></p>
+<p>最后进行了base64编码</p>
+<p><img alt="image-20250724134339859" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724134339859.png"></p>
+<h3 id="aes分析">aes分析<a hidden class="anchor" aria-hidden="true" href="#aes分析">#</a></h3>
+<p>平坦化混淆的算法</p>
+<p><img alt="image-20250724133011109" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724133011109.png"></p>
+<p>将参数处理后最后调用的是<code>AES128_ECB_encrypt</code></p>
+<p><img alt="image-20250724133107827" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724133107827.png"></p>
+<p>直接hook<code>AES128_ECB_encrypt</code></p>
+<p><img alt="image-20250724133430543" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724133430543.png"></p>
+<p>那其实这里的分析没有意义，直接hook最初的j_xxx，得到的返回值就是了，因为它本身也就是原始aes</p>
+<h3 id="参数分析">参数分析<a hidden class="anchor" aria-hidden="true" href="#参数分析">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">v18 = (char *)j_AES_128_ECB_PKCS5Padding_Encrypt(v11, Value);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>[v11]</strong></p>
+<p>就是java传入的str</p>
+<p><img alt="image-20250724140605938" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724140605938.png"></p>
+<p><strong>[value]</strong></p>
+<p>密钥变相硬编码，虽然是通过getvalue得到的，但是传入的str是一样的</p>
+<h2 id="请求还原">请求还原<a hidden class="anchor" aria-hidden="true" href="#请求还原">#</a></h2>
+<p>根据前面的分析，在请求<code>得物热榜</code>的时候，报文中只有一下四个值和sign相关</p>
+<p>这些是必要头</p>
+<p><img alt="image-20250724143507201" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724143507201.png"></p>
+<p>成功还原</p>
+<p><img alt="image-20250724144234904" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724144234904.png"></p>
+<p>更改参数生成后成功拉去求响应</p>
+<p><img alt="image-20250724145702839" loading="lazy" src="/zh/posts/tech/du/picture/image-20250724145702839.png"></p>
+<h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="https://so.csdn.net/so/search?q=libgamevmp&amp;t=blog&amp;u=linchaolong">https://so.csdn.net/so/search?q=libgamevmp&t=blog&u=linchaolong</a></p>
+<p><a href="https://mp.weixin.qq.com/s/x6xIZ3cQ8fsVRpWORC45HA">https://mp.weixin.qq.com/s/x6xIZ3cQ8fsVRpWORC45HA</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://SimpsonGet.github.io/zh/tags/vmp%E5%A3%B3/">VMP壳</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://SimpsonGet.github.io/zh/posts/tech/childgating/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>Frida Hook 子进程</span>
+  </a>
+  <a class="next" href="https://SimpsonGet.github.io/zh/posts/tech/vip/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>【爬虫】唯品会APP逆向</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://SimpsonGet.github.io/zh/">Simpson&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
